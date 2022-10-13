@@ -24,7 +24,7 @@ For this project, you will write a Packer template and a Terraform template to d
       parker build server.json
    ```
 
-4. After the creation of image, use the main.tf and var.tf to deploy resources with command
+4. After the creation of image, use the main.tf and var.tf to deploy resources in terminal with command
    ```
       terraform init
    ```
