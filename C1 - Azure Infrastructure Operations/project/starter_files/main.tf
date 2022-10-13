@@ -53,20 +53,6 @@ resource "azurerm_network_security_group" "main" {
   tags = var.tags
 }
 
-
-
-resource "azurerm_network_interface" "main" {
-  name                = "${var.prefix}-nic"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.internal.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
 resource "azurerm_public_ip" "main" {
   name                         = "${var.prefix}-vm-public-ip"
   location                     = var.location
@@ -108,6 +94,26 @@ resource "azurerm_lb_rule" "lbnatrule" {
   probe_id                       = azurerm_lb_probe.main.id
 }
 
+
+resource "azurerm_network_interface" "main" {
+  name                = "${var.prefix}-nic"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.internal.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_network_interface_backend_address_pool_association" "main" {
+  count = var.vm_count
+  network_interface_id    = azurerm_network_interface.main.id
+  ip_configuration_name   = "${var.prefix}-configuration"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.bpepool.id
+}
+
 data "azurerm_resource_group" "image" {
   name                = var.packer_resource_group_name
 }
@@ -122,11 +128,12 @@ resource "azurerm_virtual_machine_scale_set" "main" {
   location            = var.location
   resource_group_name = azurerm_resource_group.main.name
   upgrade_policy_mode = "Manual"
-
+  network_interface_ids = [
+    azurerm_network_interface.main[count.index].id,
+  ]
   sku {
     name     = "Standard_D2s_v3"
     tier     = "Standard"
-    capacity = var.number_vm
   }
 
   storage_profile_image_reference {
@@ -170,15 +177,14 @@ resource "azurerm_virtual_machine_scale_set" "main" {
 
 resource "azurerm_linux_virtual_machine" "main" {
   name                            = "${var.prefix}-vm"
+  count                           = var.vm_count    # Count Value read from variable
   resource_group_name             = azurerm_resource_group.main.name
   location                        = azurerm_resource_group.main.location
   size                            = "Standard_D2s_v3"
   admin_username                  = "${var.username}"
   admin_password                  = "${var.password}"
   disable_password_authentication = false
-  network_interface_ids = [
-    azurerm_network_interface.main.id
-  ]
+  network_interface_id            = azurerm_network_interface.main.id
 
   source_image_reference {
     publisher = "Canonical"
