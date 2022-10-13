@@ -33,7 +33,7 @@ variable "tags" {
    description = "Map of the tags to use for the resources that are deployed"
    type        = map(string)
    default = {
-      environment = "dev"
+   environment = "dev"
    }
 }
 
@@ -42,7 +42,8 @@ variable "application_port" {
    default     = 80
 }
 
-variable "number_vm" {
+variable "vm_count" {
   description = "the number of virtual machines for the deployment"
-  default     = 2
+  default     = 2   
+  //for cost reasons, no more than 5.
 }
