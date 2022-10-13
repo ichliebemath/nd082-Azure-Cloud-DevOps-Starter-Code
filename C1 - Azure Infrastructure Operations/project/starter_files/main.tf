@@ -123,58 +123,6 @@ data "azurerm_image" "image" {
   resource_group_name = azurerm_resource_group.main.name
 }
 
-resource "azurerm_virtual_machine_scale_set" "main" {
-  name                = "vmscaleset"
-  location            = var.location
-  resource_group_name = azurerm_resource_group.main.name
-  upgrade_policy_mode = "Manual"
-  network_interface_ids = [
-    azurerm_network_interface.main[count.index].id,
-  ]
-  sku {
-    name     = "Standard_D2s_v3"
-    tier     = "Standard"
-  }
-
-  storage_profile_image_reference {
-    id=data.azurerm_image.image.id
-  }
-
-  storage_profile_os_disk {
-    name              = ""
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  storage_profile_data_disk {
-    lun          = 0
-    caching        = "ReadWrite"
-    create_option  = "Empty"
-    disk_size_gb   = 10
-  }
-
-  os_profile {
-    computer_name_prefix = "vmlab"
-    admin_username       = var.username
-    admin_password       = var.password
-  }
-
-  network_profile {
-    name    = "terraformnetworkprofile"
-    primary = true
-
-    ip_configuration {
-      name                                   = "IPConfiguration"
-      subnet_id                              = azurerm_subnet.internal.id
-      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.bpepool.id]
-      primary = true
-    }
-  }
-  
-  tags = var.tags
-}
-
 resource "azurerm_linux_virtual_machine" "main" {
   name                            = "${var.prefix}-vm"
   count                           = var.vm_count    # Count Value read from variable
@@ -184,7 +132,7 @@ resource "azurerm_linux_virtual_machine" "main" {
   admin_username                  = "${var.username}"
   admin_password                  = "${var.password}"
   disable_password_authentication = false
-  network_interface_id            = azurerm_network_interface.main.id
+  network_interface_ids            = [azurerm_network_interface.main.id]
 
   source_image_reference {
     publisher = "Canonical"
