@@ -24,7 +24,7 @@ For this project, you will write a Packer template and a Terraform template to d
 4. After the creation of image, use the main.tf and var.tf to deploy resources with command 
    ´terraform init´,
    ´terraform apply solution.plan´
-5. You can change the variable vm_count in the var.tf to configure the number of the vitual machines you want to use for deployment. For cost      reasons, the maximum is 5.
+5. You can change the variable vm_count in the var.tf to configure the number of the vitual machines you want to use for deployment. For cost reasons, the maximum is 5.
 6. After you finished deploying resourse, run
    ´terraform destory´
    so that you can clean up your deployed resources
